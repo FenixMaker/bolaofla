@@ -1,16 +1,13 @@
-import express from 'express';
-import { cadastrarPalpite, listarPalpites } from '../controllers/palpites.js';
-import { atualizarPlacar, finalizarJogo } from '../controllers/admin.js';
-import { authMiddleware } from '../middleware/auth.js';
+import { Router } from 'express';
+import * as adminController from '../controllers/admin.js';
+import * as palpitesController from '../controllers/palpites.js';
+// import auth from '../middleware/auth.js'; // se necessário
 
-const router = express.Router();
+const router = Router();
 
-// Rotas públicas
-router.post('/palpites', cadastrarPalpite);
-router.get('/palpites', listarPalpites);
-
-// Rotas protegidas (admin)
-router.post('/update-score', authMiddleware, atualizarPlacar);
-router.post('/finalizar-jogo', authMiddleware, finalizarJogo);
+router.get('/sincronizar-jogo', adminController.sincronizarJogo);
+router.get('/palpites', palpitesController.getPalpites);
+router.post('/palpite', palpitesController.criarPalpite);
+router.post('/placar', adminController.atualizarPlacar);
 
 export default router;

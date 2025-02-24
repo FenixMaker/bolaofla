@@ -1,13 +1,27 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BolãoFla Deepseek</title>
-  <link rel="manifest" href="/manifest.json">
+  <title>Bolão Fla Bibi</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.js"></script>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="module" src="/src/main.jsx"></script>
+  <div id="app">
+    <h1>Bolão Fla Bibi</h1>
+    <div class="placar">
+      <h2>Flamengo vs {{ adversario }}</h2>
+      <p>Placar: {{ placarAtual }}</p>
+      <p>Tempo: {{ tempo }}</p>
+    </div>
+    <h3>Palpites dos Participantes:</h3>
+    <ul>
+      <li v-for="palpite in palpites" :key="palpite.nome">
+        {{ palpite.nome }}: {{ palpite.placar }}
+      </li>
+    </ul>
+  </div>
+  <script src="app.js"></script>
 </body>
 </html>

@@ -1,27 +1,38 @@
-import db from '../config/db.js';
+const { getNextMatch, getLastMatch } = require('../services/apiFootball');
 
-export const atualizarPlacar = (req, res) => {
-  const { home, away } = req.body;
-  db.run(
-    'UPDATE jogo_atual SET placar_casa = ?, placar_visitante = ? WHERE id = 1',
-    [home, away],
-    (err) => {
-      if (err) return res.status(500).json({ error: 'Erro ao atualizar placar' });
-      res.json({ success: true });
+// Exemplo de função para atualizar dados do jogo com informações da API
+async function sincronizarJogo(req, res) {
+  try {
+    // Você pode optar por buscar o próximo jogo ou o último jogo, conforme sua lógica
+    const jogo = await getNextMatch();
+    if (!jogo) {
+      return res.status(404).json({ error: "Nenhum jogo encontrado para o Flamengo." });
     }
-  );
-};
+    
+    // Extraia as informações que deseja:
+    const placar = {
+      timeCasa: jogo.strHomeTeam,
+      timeFora: jogo.strAwayTeam,
+      // Caso o placar já tenha sido iniciado ou finalizado, esses campos estarão disponíveis
+      golsCasa: jogo.intHomeScore || 0,
+      golsFora: jogo.intAwayScore || 0,
+      data: jogo.dateEvent,
+      horario: jogo.strTime
+    };
 
-export const finalizarJogo = (req, res) => {
-  db.get(
-    'SELECT time_casa, time_visitante, placar_casa, placar_visitante FROM jogo_atual',
-    (err, jogo) => {
-      db.run(
-        'INSERT INTO historico_jogos (time_casa, time_visitante, placar_casa, placar_visitante) VALUES (?, ?, ?, ?)',
-        [jogo.time_casa, jogo.time_visitante, jogo.placar_casa, jogo.placar_visitante]
-      );
-      db.run('UPDATE jogo_atual SET placar_casa = 0, placar_visitante = 0, tempo = "00:00"');
-      res.json({ success: true });
-    }
-  );
+    // Aqui você pode salvar essas informações no banco de dados ou atualizá-las via WebSocket
+    // Por exemplo, supondo que você tenha uma função para atualizar o placar:
+    // await atualizarPlacarNoBanco(placar);
+
+    // Para este exemplo, retornamos os dados:
+    return res.json({ jogo: placar });
+  } catch (error) {
+    console.error("Erro na sincronização do jogo:", error);
+    return res.status(500).json({ error: "Erro interno ao sincronizar o jogo." });
+  }
+}
+
+module.exports = {
+  sincronizarJogo,
+  // ...outros métodos administrativos
 };

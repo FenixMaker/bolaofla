@@ -1,23 +1,42 @@
-import axios from 'axios';
+const fetch = require('node-fetch');
 
-const API_KEY = 'SUA_CHAVE';
-const API_HOST = 'v3.football.api-sports.io';
+// URL base da API gratuita da TheSportsDB (API key "1" é pública)
+const API_URL = "https://www.thesportsdb.com/api/v1/json/1";
+// ID do Flamengo na TheSportsDB (exemplo: 133602)
+const FLAMENGO_TEAM_ID = "133602";
 
-export const getProximoJogoFlamengo = async () => {
+// Função para buscar o próximo jogo do Flamengo
+async function getNextMatch() {
   try {
-    const response = await axios.get('https://v3.football.api-sports.io/fixtures', {
-      headers: {
-        'x-rapidapi-host': API_HOST,
-        'x-rapidapi-key': API_KEY
-      },
-      params: {
-        team: '1211', // ID do Flamengo na API
-        next: 1
-      }
-    });
-    return response.data.response[0];
+    const response = await fetch(`${API_URL}/eventsnext.php?id=${FLAMENGO_TEAM_ID}`);
+    const data = await response.json();
+    // data.events é um array dos próximos jogos; usamos o primeiro (mais próximo)
+    if (data && data.events && data.events.length > 0) {
+      return data.events[0];
+    }
+    return null;
   } catch (error) {
-    console.error('Erro na API:', error);
+    console.error("Erro ao buscar o próximo jogo:", error);
     return null;
   }
+}
+
+// Se desejar também buscar o último jogo, pode criar outra função
+async function getLastMatch() {
+  try {
+    const response = await fetch(`${API_URL}/eventslast.php?id=${FLAMENGO_TEAM_ID}`);
+    const data = await response.json();
+    if (data && data.results && data.results.length > 0) {
+      return data.results[0];
+    }
+    return null;
+  } catch (error) {
+    console.error("Erro ao buscar o último jogo:", error);
+    return null;
+  }
+}
+
+module.exports = {
+  getNextMatch,
+  getLastMatch,
 };

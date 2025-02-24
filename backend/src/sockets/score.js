@@ -1,25 +1,28 @@
-export default (io) => {
-    io.on('connection', (socket) => {
-      console.log('Cliente conectado via WebSocket');
-  
-      socket.on('atualizar_placar', (novoPlacar) => {
-        db.run(
-          'UPDATE jogo_atual SET placar_casa = ?, placar_visitante = ? WHERE id = 1',
-          [novoPlacar.home, novoPlacar.away],
-          () => {
-            io.emit('placar_atualizado', novoPlacar);
-          }
-        );
-      });
-  
-      socket.on('atualizar_tempo', (novoTempo) => {
-        db.run(
-          'UPDATE jogo_atual SET tempo = ? WHERE id = 1',
-          [novoTempo],
-          () => {
-            io.emit('tempo_atualizado', novoTempo);
-          }
-        );
-      });
+import { WebSocketServer } from 'ws';
+
+export function setupScoreSocket(server) {
+  const wss = new WebSocketServer({ server });
+
+  wss.on('connection', (ws) => {
+    console.log("Cliente conectado via WebSocket.");
+
+    ws.on('message', (message) => {
+      console.log("Mensagem recebida:", message);
     });
-  };
+
+    ws.on('close', () => {
+      console.log("Cliente desconectado.");
+    });
+  });
+
+  // Função para enviar dados para todos os clientes
+  function broadcast(data) {
+    wss.clients.forEach(client => {
+      if (client.readyState === client.OPEN) {
+        client.send(JSON.stringify(data));
+      }
+    });
+  }
+
+  return { broadcast };
+}
